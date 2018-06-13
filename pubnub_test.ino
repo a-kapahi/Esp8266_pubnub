@@ -9,21 +9,25 @@
 #include <DHT_U.h>
 #include "Timer.h"
 
+//Timer declarations 
 Timer t;
-long interval = 10000;
+long interval = 10000; //Interval between readings in milliseconds
 
+//DHT22 declarations 
 #define DATA_PIN 2
 DHT_Unified dht(DATA_PIN, DHT22);
 
-char* ssid     = ""; 
-char* password = ""; 
+//Wifi declarations 
+char* ssid     = "";  //SSID 
+char* password = "";  //Password
 
+//PUBNUB declarations 
 const char* pub_key = ""; //Publish key goes here
 const char* sub_key = ""; //Subscribe key goes here
+
 void setup() {
  Serial.begin(115200); 
- Serial.println(); 
- Serial.println(); 
+ Serial.println();Serial.println(); 
  Serial.print("Connecting to "); 
  Serial.println(ssid); 
  WiFi.begin(ssid, password); 
@@ -38,13 +42,12 @@ void setup() {
  PubNub.begin(pub_key, sub_key);
  PubNub.set_uuid("sensor1");
  dht.begin();
- t.every(30000, takeReading);
+ t.every(interval, takeReading);
 }
 
 void loop() {
-  t.update();
-  // put your main code here, to run repeatedly:
-  
+ // put your main code here, to run repeatedly:
+  t.update();  
 }
 
 
@@ -56,7 +59,7 @@ void takeReading()
   Serial.println(celsius);
    PubNub_BASE_CLIENT *client;
    Serial.println("publishing a message");
-     client = PubNub.publish("test",makestr(celsius));
+     client = PubNub.publish("test",makeJson(celsius));
     if (!client) {
         Serial.println("publishing error");
         delay(1000);
@@ -71,7 +74,9 @@ void takeReading()
     Serial.println();
 }
 
-char* makestr(float c){
+
+//Convert float data to Json
+char* makeJson(float c){
   char temp[10];
   dtostrf(c,7,2,temp);
   return joinStrings("\"",temp,"\"");
